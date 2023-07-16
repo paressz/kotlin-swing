@@ -1,80 +1,103 @@
 import Util.hexColor
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.ObservableEmitter
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Dimension
-import java.awt.FlowLayout
 import java.awt.GridLayout
-import javax.swing.BorderFactory
-import javax.swing.BoxLayout
-import javax.swing.JButton
-import javax.swing.JFrame
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.WindowConstants
+import java.awt.event.ActionEvent
+import javax.swing.*
+import javax.swing.event.DocumentEvent
+import javax.swing.event.DocumentListener
 
 class TesClass : JFrame() {
-    private val componentWidth = 800
+    private var side: JPanel? = null
+    private var top: JPanel? = null
+    private var center: JPanel? = null
+    private var btnTest: JButton? = null
+    private var lbTest: JLabel? = null
+    private var lb2: JLabel? = null
+    private var click = 0
+    private var observable: Observable<String>? = null
+    private var jtf: JTextField? = null
 
     init {
-        initcomponent()
+        observable = Observable.create { it: ObservableEmitter<String> ->
+            it.onNext(
+                jtf!!.text
+            )
+        }
+        initFrame()
     }
 
-    private fun initcomponent() {
-        size = Dimension(componentWidth, 500)
+    private fun initFrame() {
+        initComponent()
         layout = BorderLayout()
-        add(
-            CenterPanel(),
-            BorderLayout.CENTER
-        )
-        add(
-            TopPanel(),
-            BorderLayout.NORTH
-        )
-        add(
-            SidePanel(),
-            BorderLayout.WEST
-        )
-        defaultCloseOperation = EXIT_ON_CLOSE
+        size = Dimension(800, 500)
         isVisible = true
-        isUndecorated = true
+        defaultCloseOperation = EXIT_ON_CLOSE
+        title = "KOTLINRX"
+        add(side, BorderLayout.WEST)
+        add(top, BorderLayout.NORTH)
+        add(center, BorderLayout.CENTER)
     }
-    private fun TopPanel() : JPanel {
-        val panel = JPanel()
-        panel.apply {
-            layout = GridLayout(3,3)
-            preferredSize = Dimension(componentWidth, 50)
+
+    fun initComponent() {
+        top = JPanel()
+        center = JPanel()
+        side = JPanel()
+        btnTest = JButton("CLICC")
+        lbTest = JLabel("EMPTY")
+        lb2 = JLabel("SADASDSD")
+        initjtf()
+        top!!.apply {
+            layout = GridLayout(3, 3)
+            preferredSize = Dimension(800, 50)
             background = hexColor("282828")
-            val jl : MutableList<JLabel>  = mutableListOf()
-            for (i in 0..8) {
-                jl.add(JLabel())
-                this.add(jl[i])
-            }
-
-            jl[3].apply {
-                border = BorderFactory.createEmptyBorder(0,50,0,0)
-                text = "APLIKASI RAPOR SDN XTA"
-                foreground = hexColor("FFFFFF")
-                isVisible = true
-            }
         }
-        return panel
-    }
-    private fun CenterPanel() : JPanel {
-        val panel = JPanel()
-        panel.apply {
+        btnTest!!.addActionListener { e: ActionEvent? ->
+            click++
+            println("BTN CLICK $click")
+            lbTest!!.text = "CHANGED YO $click"
+        }
+        center!!.apply {
             preferredSize = Dimension(750, 450)
-            background = hexColor("BEBEBE")
-
+            background = hexColor()
+            add(lbTest)
+            add(btnTest)
+            add(lb2)
+            add(jtf)
         }
-        return panel
-    }
-    private fun SidePanel(): JPanel {
-        val panel = JPanel()
-        panel.apply {
+        side!!.apply {
             preferredSize = Dimension(50, 500)
             background = hexColor("25344A")
-
         }
-        return panel
+    }
+
+    private fun initjtf() {
+        jtf = JTextField()
+        jtf!!.apply {
+            preferredSize = Dimension(200, 30)
+            document.addDocumentListener(object : DocumentListener {
+                override fun insertUpdate(e: DocumentEvent) {
+                    initObservable()
+                }
+
+                override fun removeUpdate(e: DocumentEvent) {
+                    initObservable()
+                }
+
+                override fun changedUpdate(e: DocumentEvent) {
+
+                }
+            })
+        }
+    }
+
+    private fun initObservable() {
+
+        observable!!.subscribe(
+            { item: String -> lb2!!.text = item },
+            { ex: Throwable -> println(ex.message) }
+        ) { println("COMPLETE") }.dispose()
     }
 }
