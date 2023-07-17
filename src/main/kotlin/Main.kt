@@ -2,4 +2,5 @@
 
 fun main () {
     TesClass()
+    TesDb()
 }
